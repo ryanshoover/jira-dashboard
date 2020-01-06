@@ -51,11 +51,13 @@ if (!isDev && cluster.isMaster) {
 		'/api',
 		cors(),
 		( request, response ) => {
+			const jiraKey = getEpicKey( request.query.activeEpic );
+
 			response.set( 'Content-Type', 'application/json' );
 
 			Promise.all( [
-				api.getIssueDetails( process.env.JIRA_EPIC ),
-				api.getEpicIssues( process.env.JIRA_EPIC ),
+				api.getIssueDetails( jiraKey ),
+				api.getEpicIssues( jiraKey ),
 			] ).then( ( results ) => {
 				response.send( {
 					epic: results[0],
@@ -83,4 +85,17 @@ if (!isDev && cluster.isMaster) {
 			console.error(`Node ${isDev ? 'dev server' : 'cluster worker ' + process.pid}: listening on port ${PORT}`);
 		}
 	);
+}
+
+function getEpicKey( prevEpic = '' ) {
+	const epics = process.env.JIRA_EPICS.split(',');
+
+	// New index is previous index plus one.
+	// Unfound results have an index of -1, so new index would be 0.
+	let idx = epics.indexOf( prevEpic ) + 1;
+
+	// If the index is for the last item, go back to zero
+	idx = idx >= epics.length ? 0 : idx;
+
+	return epics[ idx ];
 }

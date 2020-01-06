@@ -10,6 +10,7 @@ class App extends Component {
 
 		this.state = {
 			epic: {
+				key: '',
 				summary: '',
 			},
 			issues: [],
@@ -28,7 +29,7 @@ class App extends Component {
 	}
 
 	updateData() {
-		fetch( `/api` )
+		fetch( `/api?activeEpic=${ this.state.epic.key }` )
 			.then( res => {
 				if ( 200 !== res.status ) {
 					throw new Error( res.statusText );
