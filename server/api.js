@@ -1,61 +1,24 @@
 const request = require( 'request' );
 const atob = require( 'atob' );
-const debug = require('debug')('pull-request-backend:server');
+const btoa = require( 'btoa' );
+const debug = require('debug')('jira-backend:server');
+
+const baseURL = `${ process.env.JIRA_API_URL }/rest/api/3`;
+const basicAuth = btoa( `${ process.env.JIRA_API_USER }:${ process.env.JIRA_API_TOKEN }` )
 
 let reqOptions = {
 	json: true,
 	headers: {
-		'Accept': 'application/vnd.github.v3+json',
-		'Authorization': 'token ' + process.env.GITHUB_TOKEN,
-		'User-Agent': 'pull-request-dashboard',
+		'Authorization': `Basic ${ basicAuth }`,
+		'User-Agent': 'jira-dashboard',
 	}
 };
 
-function getPulls() {
-	return new Promise( ( resolve ) => {
-		getTeamRepos()
-		.then( repos => Promise.all( repos.map( getRepoPulls ) ) )
-		.then( repos => {
-			const allPulls = [];
-
-			repos.forEach( pulls => {
-				pulls.forEach( pull => allPulls.push( pull ) );
-			 } );
-
-			return processPulls( allPulls );
-		} )
-		.then( data => resolve( data ) )
-		.catch( err => console.error( 'getPulls catch', err ) );
-	} );
-}
-
-function getDependencies() {
-	return new Promise( ( resolve ) => {
-		getTeamRepos()
-		.then( repoData => {
-			const repos = [];
-
-			for ( const repo of repoData ) {
-				repos.push( {
-					name: repo.full_name,
-					composer: [],
-					package: [],
-				} );
-			}
-
-			return repos;
-		} )
-		.then( repos => Promise.all( repos.map( getComposer ) ) )
-		.then( repos => Promise.all( repos.map( getPackage ) ) )
-		.then( data => resolve( data ) )
-		.catch( err => console.error( 'getProducts catch', err ) );
-	} );
-}
-
-function getTeamRepos() {
-	reqOptions.url = `https://api.github.com/teams/${ process.env.GITHUB_TEAM }/repos?per_page=100`;
-
+function getIssueDetails( key = '' ) {
 	return new Promise( ( resolve, reject ) => {
+
+		reqOptions.url = `${ baseURL }/issue/${ key }`;
+
 		request( reqOptions, ( err, res, body ) => {
 			if ( err ) {
 				reject( err );
@@ -66,116 +29,27 @@ function getTeamRepos() {
 				return;
 			}
 
-			if ( body.hasOwnProperty( 'message' ) ) {
-				reject( body.message );
-				return;
-			}
+			const issue = {
+				key: body.key,
+				assignee: body.fields.assignee,
+				summary: body.fields.summary,
+				components: body.fields.components.filter( component => component.name ),
+				type: body.fields.issuetype.name,
+				status: body.fields.status.name
+			};
 
-			const repos = body.filter( repo => repo.permissions.admin );
+			debug( 'Issue', issue );
 
-			debug( 'Number of repos', repos.length );
-
-			resolve( repos );
-		} );
-	})
-}
-
-function getRepoPulls( repo ) {
-	reqOptions.url = repo.pulls_url.replace( /{[^}]*}$/, '' );
-
-	return new Promise( ( resolve, reject ) => {
-		request( reqOptions, ( err, res, body ) => {
-			if ( err ) {
-				reject( err );
-			}
-
-			if ( 'object' !== typeof body ) {
-				reject( 'Body is not an object' );
-				return;
-			}
-
-			if ( body.hasOwnProperty( 'message' ) ) {
-				reject( body.message );
-				return;
-			}
-
-			resolve( body );
-		} );
-	})
-}
-
-function processPulls( pulls ) {
-	const counts = {
-		repos: {},
-		reviewers: {},
-		owners: {},
-	};
-
-	return new Promise( ( resolve ) => {
-		pulls.forEach( ( pull ) => {
-			pull.requested_reviewers.forEach( reviewer => {
-				counts.reviewers[ reviewer.login ] = counts.reviewers[ reviewer.login ] || 0;
-				counts.reviewers[ reviewer.login]++;
-			} );
-
-			const owner = pull.assignee || pull.user;
-			counts.owners[ owner.login ] = counts.owners[ owner.login ] || 0;
-			counts.owners[ owner.login ]++;
-
-			const repo = pull.url.match( /\/repos\/[^/]+\/([^/]+)\// )[1];
-			counts.repos[ repo ] = counts.repos[ repo ] || 0;
-			counts.repos[ repo ]++;
-		} );
-
-		resolve( counts );
-	} );
-}
-
-function getComposer( repo ) {
-	reqOptions.url = `https://api.github.com/repos/${ repo.name }/contents/composer.json`;
-
-	return new Promise( ( resolve, reject ) => {
-		request( reqOptions, ( err, res, body ) => {
-			if ( err ) {
-				reject( err );
-			}
-
-			if ( 'object' !== typeof body ) {
-				reject( 'Body is not an object' );
-				return;
-			}
-
-			if ( body.hasOwnProperty( 'message' ) ) {
-				debug( 'No composer', repo.name );
-				resolve( repo );
-				return;
-			}
-
-			debug( 'Found composer', repo.name );
-
-			let composer;
-
-			try {
-				composer = JSON.parse( atob( body.content ) );
-			} catch ( error ) {
-				console.error( error );
-				reject( error );
-			}
-
-			const requires = composer.hasOwnProperty( 'require' ) ? Object.keys( composer.require ) : [];
-			const requireDevs = composer.hasOwnProperty( 'require-dev' ) ? Object.keys( composer['require-dev'] ) : [];
-
-			repo.composer = [ ...requires, ...requireDevs ];
-
-			resolve( repo );
+			resolve( issue );
 		} );
 	} );
 }
 
-function getPackage( repo ) {
-	reqOptions.url = `https://api.github.com/repos/${ repo.name }/contents/package.json`;
-
+function getEpicIssues( key = '' ) {
 	return new Promise( ( resolve, reject ) => {
+
+		reqOptions.url = `${ baseURL }/search?jql="Epic Link"=${ key }`;
+
 		request( reqOptions, ( err, res, body ) => {
 			if ( err ) {
 				reject( err );
@@ -186,26 +60,29 @@ function getPackage( repo ) {
 				return;
 			}
 
-			if ( body.hasOwnProperty( 'message' ) ) {
-				debug( 'No package', repo.name );
-				resolve( repo );
-				return;
+			const issues = [];
+
+			for ( const issue of body.issues ) {
+				issues.push(
+					{
+						key: issue.key,
+						assignee: issue.fields.assignee,
+						components: issue.fields.components.filter( component => component.name ),
+						type: issue.fields.issuetype.name,
+						status: issue.fields.status.name,
+						epic: issue.fields.customfield_10007,
+					}
+				);
 			}
 
-			debug( 'Found package', repo.name );
+			debug( 'Epic Issues', issues.length );
 
-			const packg = JSON.parse( atob( body.content ) );
-			const dependencies = packg.hasOwnProperty( 'dependencies' ) ? Object.keys( packg.dependencies ) : [];
-			const devDependencies = packg.hasOwnProperty( 'devDependencies' ) ? Object.keys( packg.devDependencies ) : [];
-
-			repo.package = [ ...dependencies, ...devDependencies ];
-
-			resolve( repo );
+			resolve( issues );
 		} );
 	} );
 }
 
 module.exports = {
-	getPulls,
-	getDependencies,
+	getIssueDetails,
+	getEpicIssues,
 };

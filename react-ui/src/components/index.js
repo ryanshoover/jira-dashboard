@@ -1,7 +1,7 @@
-import BarGraph from './bargraph';
-import DependencyTree from './dependencytree';
+import Issue from './issue';
+import PieChart from './piechart';
 
 export {
-	DependencyTree,
-	BarGraph,
+	Issue,
+	PieChart,
 };

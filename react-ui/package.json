@@ -1,6 +1,6 @@
 {
-    "name": "pull-request-dashboard",
-    "version": "0.1.0",
+    "name": "jira-dashboard",
+    "version": "1.0.0",
     "dependencies": {
         "@babel/core": "7.6.4",
         "@svgr/webpack": "4.3.3",

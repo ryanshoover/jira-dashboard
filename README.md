@@ -13,7 +13,7 @@ This project is designed to be deployed to a Heroku instance using the [mars/her
     GITHUB_TOKEN=your-github-token-with-read-access
     GITHUB_TEAM=your-github-team-id-number
     SERVER_PORT=3000
-    DEBUG=pull-request-backend:server
+    DEBUG=jira-backend:server
     SITE_TITLE="DX Team Pull Requests"
     ```
 

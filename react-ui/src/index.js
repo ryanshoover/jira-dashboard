@@ -4,7 +4,7 @@ import './index.css';
 import App from './app';
 import * as serviceWorker from './serviceWorker';
 
-const siteTitle = 'DX Team Pull Requests';
+const siteTitle = 'DX Team Jira Dashboard';
 
 ReactDOM.render( <App title={ siteTitle } />, document.getElementById('root') );
 

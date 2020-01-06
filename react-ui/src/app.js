@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { BarGraph, DependencyTree } from './components';
+import { Issue, PieChart } from './components';
 import './app.css';
 
 class App extends Component {
@@ -9,12 +9,10 @@ class App extends Component {
 		this.props = props;
 
 		this.state = {
-			pulls: {
-				reviewers: {},
-				owners: {},
-				repos: {},
+			epic: {
+				summary: '',
 			},
-			dependencies: [],
+			issues: [],
 		};
 
 		this.INTERVAL = 60000 * 5; // 5 minutes
@@ -24,15 +22,13 @@ class App extends Component {
 	}
 
 	componentDidMount() {
-		for ( const type of [ 'pulls', 'dependencies' ] ) {
-			this.updateData( type );
-		}
+		this.updateData();
 
-		this.intervalID = setInterval( () => this.updateData( 'pulls' ), this.INTERVAL );
+		this.intervalID = setInterval( () => this.updateData(), this.INTERVAL );
 	}
 
-	updateData( type ) {
-		fetch( `/api/${ type }` )
+	updateData() {
+		fetch( `/api` )
 			.then( res => {
 				if ( 200 !== res.status ) {
 					throw new Error( res.statusText );
@@ -41,11 +37,7 @@ class App extends Component {
 				return res.json();
 			} )
 			.then( data => {
-				const state = this.state;
-
-				state[ type ] = data;
-
-				this.setState( state );
+				this.setState( data );
 			} )
 			.catch( err => console.error( err ) );
 	}
@@ -56,16 +48,10 @@ class App extends Component {
 				<header className="app-header">
 					<h1>{ this.props.title }</h1>
 				</header>
-				<main className="pulls">
-					<BarGraph title="Review Requests" data={ this.state.pulls.reviewers } />
-					<BarGraph title="Open Pulls" data={ this.state.pulls.owners } />
-					<BarGraph title="Repos" data={ this.state.pulls.repos } />
-				</main>
-				<header className="app-header">
-					<h1>Repos &amp; Dependencies</h1>
-				</header>
-				<main className="products">
-					<DependencyTree title="Products" dependencies={ this.state.dependencies } />
+				<main className="epic">
+					<Issue issue={ this.state.epic } />
+					<PieChart title="Status" field="status" issues={ this.state.issues } epic={ this.state.epic } />
+					<PieChart title="Team" field="assignee" issues={ this.state.issues } epic={ this.state.epic } />
 				</main>
 			</div>
 		);
