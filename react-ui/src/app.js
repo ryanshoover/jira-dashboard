@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Issue, AssigneeChart, StatusChart } from './components';
+import { Issue, AssigneeChart, StatusChart, ComparisonChart } from './components';
 import './app.css';
 
 class App extends Component {
@@ -51,7 +51,8 @@ class App extends Component {
 				</header>
 				<main className="epic">
 					<Issue issue={ this.state.epic } />
-					<StatusChart title="Status" issues={ this.state.issues } />
+					<ComparisonChart title="Project Status" issues={ this.state.issues } />
+					<StatusChart title="Tickets" issues={ this.state.issues } />
 					<AssigneeChart title="Team" issues={ this.state.issues } />
 				</main>
 			</div>

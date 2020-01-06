@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import PieChart from './piechart';
+import Chart from './chart';
 import { colors } from '../config';
 
 export default class AssigneeChart extends Component {
@@ -28,6 +28,6 @@ export default class AssigneeChart extends Component {
 	render() {
 		const data = this.processData();
 
-		return <PieChart title={ this.props.title } data={ data } chartType="doughnut" />;
+		return <Chart title={ this.props.title } data={ data } type="doughnut" />;
 	}
 }

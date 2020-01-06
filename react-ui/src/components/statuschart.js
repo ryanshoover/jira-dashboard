@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import PieChart from './piechart';
+import Chart from './chart';
 import { colors as coreColors } from '../config';
 
 export default class StatusChart extends Component {
@@ -38,6 +38,6 @@ export default class StatusChart extends Component {
 	render() {
 		const data = this.processData();
 
-		return <PieChart title={ this.props.title } data={ data } />;
+		return <Chart title={ this.props.title } data={ data } />;
 	}
 }

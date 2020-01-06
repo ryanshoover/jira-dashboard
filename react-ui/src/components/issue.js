@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { colors } from '../config';
 
 export default class Issue extends Component {
 	render() {
