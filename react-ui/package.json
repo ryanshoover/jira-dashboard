@@ -1,6 +1,7 @@
 {
     "name": "jira-dashboard",
     "version": "1.0.0",
+    "license": "MIT",
     "dependencies": {
         "@babel/core": "7.6.4",
         "@svgr/webpack": "4.3.3",

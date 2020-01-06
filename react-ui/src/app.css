@@ -36,7 +36,6 @@ h2 {
 	grid-template-rows: 4rem repeat(2, 1fr);
 	grid-column-gap: 40px;
 	grid-row-gap: 40px;
-	align-items: center;
 	padding-left: 40px;
 	padding-right: 40px;
 }

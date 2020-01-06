@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Issue, PieChart } from './components';
+import { Issue, AssigneeChart, StatusChart } from './components';
 import './app.css';
 
 class App extends Component {
@@ -50,8 +50,8 @@ class App extends Component {
 				</header>
 				<main className="epic">
 					<Issue issue={ this.state.epic } />
-					<PieChart title="Status" field="status" issues={ this.state.issues } epic={ this.state.epic } />
-					<PieChart title="Team" field="assignee" issues={ this.state.issues } epic={ this.state.epic } />
+					<StatusChart title="Status" issues={ this.state.issues } />
+					<AssigneeChart title="Team" issues={ this.state.issues } />
 				</main>
 			</div>
 		);

@@ -1,7 +1,9 @@
 import Issue from './issue';
-import PieChart from './piechart';
+import AssigneeChart from './assigneechart';
+import StatusChart from './statuschart';
 
 export {
 	Issue,
-	PieChart,
+	AssigneeChart,
+	StatusChart,
 };
